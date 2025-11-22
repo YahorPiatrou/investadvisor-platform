@@ -1,1 +1,34 @@
+version: '3.9'
 
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: investadvisor-db
+    environment:
+      POSTGRES_USER: investuser
+      POSTGRES_PASSWORD: investpass
+      POSTGRES_DB: investadvisor
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: investadvisor-redis
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    container_name: investadvisor-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://investuser:investpass@db/investadvisor
+
+volumes:
+  postgres_data:
